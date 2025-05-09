@@ -32,16 +32,6 @@ export interface ProjectFile {
   language: string;
 }
 
-export interface ExecutionStep {
-  id: number;
-  title: string;
-  description: string;
-  type: StepType;
-  status: 'pending' | 'in-progress' | 'completed';
-  code?: string;
-  path?: string;
-}
-
 export interface PromptSubmission {
   prompt: string;
   timestamp: string;
