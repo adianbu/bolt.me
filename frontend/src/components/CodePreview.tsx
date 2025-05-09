@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Editor from "@monaco-editor/react";
 import { FileItem } from '../types';
 import { Code2, Eye } from 'lucide-react';
@@ -9,6 +9,14 @@ interface CodePreviewProps {
 
 const CodePreview: React.FC<CodePreviewProps> = ({ file }) => {
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
+  const [editorKey, setEditorKey] = useState<number>(0);
+
+  // Update editorKey when file changes to force re-render of the Editor component
+  useEffect(() => {
+    if (file) {
+      setEditorKey(prev => prev + 1);
+    }
+  }, [file]);
 
   if (!file) {
     return (
@@ -18,15 +26,22 @@ const CodePreview: React.FC<CodePreviewProps> = ({ file }) => {
     );
   }
 
-  const getLanguageId = (language: string): string => {
+  const getLanguageId = (file: FileItem): string => {
+    // Extract extension from file name
+    const extension = file.name.split('.').pop()?.toLowerCase() || '';
+    
     const languageMap: { [key: string]: string } = {
-      'javascript': 'javascript',
-      'typescript': 'typescript',
+      'js': 'javascript',
+      'jsx': 'javascript',
+      'ts': 'typescript',
+      'tsx': 'typescript',
       'html': 'html',
       'css': 'css',
       'json': 'json',
+      'md': 'markdown'
     };
-    return languageMap[language.toLowerCase()] || 'plaintext';
+    
+    return languageMap[extension] || 'plaintext';
   };
 
   return (
@@ -66,9 +81,10 @@ const CodePreview: React.FC<CodePreviewProps> = ({ file }) => {
       <div className="flex-grow overflow-hidden">
         {activeTab === 'code' ? (
           <Editor
+            key={editorKey} // Add key prop to force re-render when file changes
             height="100%"
-            defaultLanguage={getLanguageId(file.type)}
-            defaultValue={file.content}
+            language={getLanguageId(file)} // Change from defaultLanguage to language
+            value={file.content} // Change from defaultValue to value
             theme="vs-dark"
             options={{
               readOnly: true,

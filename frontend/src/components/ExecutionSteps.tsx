@@ -1,16 +1,16 @@
 import React from 'react';
 import { CheckCircle, Circle, Clock, AlertCircle, ChevronDown, ChevronRight } from 'lucide-react';
-import { ExecutionStep } from '../types';
+import { Step } from '../types';
 
 interface ExecutionStepsProps {
-  steps: ExecutionStep[];
+  steps: Step[];
   currentStepId?: string;
 }
 
 const ExecutionSteps: React.FC<ExecutionStepsProps> = ({ steps = [], currentStepId }) => {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
-  const getStepIcon = (status: ExecutionStep['status']) => {
+  const getStepIcon = (status: Step['status']) => {
     switch (status) {
       case 'completed':
         return <CheckCircle className="h-5 w-5 text-emerald-400" />;
@@ -20,7 +20,7 @@ const ExecutionSteps: React.FC<ExecutionStepsProps> = ({ steps = [], currentStep
       //   return <AlertCircle className="h-5 w-5 text-red-400" />;
       case 'pending':
       default:
-        return <Circle className="h-5 w-5 text-gray-500" />;
+        return <Circle className="h-5 w-5 text-gray-500" />; 
     }
   };
 
@@ -46,7 +46,7 @@ const ExecutionSteps: React.FC<ExecutionStepsProps> = ({ steps = [], currentStep
             step && (
               <div 
                 key={step.id}
-                className={`relative pl-8 pb-8 ${
+                className={`relative pl-8 pb-1 ${
                   index === steps.length - 1 ? 'pb-0' : ''
                 }`}
               >
@@ -63,7 +63,7 @@ const ExecutionSteps: React.FC<ExecutionStepsProps> = ({ steps = [], currentStep
                 )}
                 
                 <div 
-                  className={`rounded-lg p-4 border transition-all ${
+                  className={`rounded-lg p-1 pl-3 border transition-all ${
                     step.id.toString() === currentStepId
                       ? 'border-blue-500 bg-gray-800'
                       : 'border-gray-700 bg-gray-800'
