@@ -26,7 +26,8 @@ app.post("/template", async (req, res) => {
     const ans=(response.content[0] as TextBlock).text;
     if (ans=='node') {
         res.status(200).json({
-            prompts: [BASE_PROMPT, NodeBasePrompt]
+            prompts: [`Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${ReactBasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`],
+            uiPrompts: [NodeBasePrompt]
         });
         return;
     }
