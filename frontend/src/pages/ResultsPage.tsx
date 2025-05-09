@@ -174,7 +174,7 @@ const ResultsPage: React.FC = () => {
         
         <div className="flex flex-row gap-4 h-[calc(100vh-300px)]">
           {/* ExecutionSteps - 25% width */}
-          <div className="w-1/4 overflow-auto pr-2" style={{ maxHeight: '100%' }}>
+          <div className="w-1/4 overflow-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-900 [&::-webkit-scrollbar-thumb]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-gray-900 hover:[&::-webkit-scrollbar-thumb]:bg-gray-600" style={{ maxHeight: '100%' }}>
             <ExecutionSteps steps={steps} currentStepId={currentStepId} />
           </div>
           
