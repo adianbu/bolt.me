@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import Editor from "@monaco-editor/react";
-import { ProjectFile } from '../types';
+import { FileItem } from '../types';
 import { Code2, Eye } from 'lucide-react';
 
 interface CodePreviewProps {
-  file: ProjectFile | null;
+  file: FileItem | null;
 }
 
 const CodePreview: React.FC<CodePreviewProps> = ({ file }) => {
@@ -58,7 +58,7 @@ const CodePreview: React.FC<CodePreviewProps> = ({ file }) => {
         </div>
         <div className="ml-auto flex items-center">
           <span className="text-xs px-2 py-1 rounded bg-gray-700 text-gray-300">
-            {file.language}
+            {file.type}
           </span>
         </div>
       </div>
@@ -67,7 +67,7 @@ const CodePreview: React.FC<CodePreviewProps> = ({ file }) => {
         {activeTab === 'code' ? (
           <Editor
             height="100%"
-            defaultLanguage={getLanguageId(file.language)}
+            defaultLanguage={getLanguageId(file.type)}
             defaultValue={file.content}
             theme="vs-dark"
             options={{
@@ -81,7 +81,7 @@ const CodePreview: React.FC<CodePreviewProps> = ({ file }) => {
           />
         ) : (
           <div className="h-full">
-            {file.language === 'html' ? (
+            {file.type.toLowerCase() === 'html' ? (
               <iframe
                 srcDoc={file.content}
                 className="w-full h-full bg-white"

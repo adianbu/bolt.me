@@ -14,10 +14,10 @@ const ExecutionSteps: React.FC<ExecutionStepsProps> = ({ steps = [], currentStep
     switch (status) {
       case 'completed':
         return <CheckCircle className="h-5 w-5 text-emerald-400" />;
-      case 'running':
+      case 'in-progress':
         return <Clock className="h-5 w-5 text-blue-400 animate-pulse" />;
-      case 'error':
-        return <AlertCircle className="h-5 w-5 text-red-400" />;
+      // case 'error':
+      //   return <AlertCircle className="h-5 w-5 text-red-400" />;
       case 'pending':
       default:
         return <Circle className="h-5 w-5 text-gray-500" />;
@@ -64,18 +64,18 @@ const ExecutionSteps: React.FC<ExecutionStepsProps> = ({ steps = [], currentStep
                 
                 <div 
                   className={`rounded-lg p-4 border transition-all ${
-                    step.id === currentStepId
+                    step.id.toString() === currentStepId
                       ? 'border-blue-500 bg-gray-800'
                       : 'border-gray-700 bg-gray-800'
                   }`}
                 >
                   <h3 className="font-medium text-gray-200">{step.title}</h3>
                   <p className="text-sm text-gray-400 mt-1">{step.description}</p>
-                  <div className="flex items-center justify-between mt-2">
+                  {/* <div className="flex items-center justify-between mt-2">
                     <span className="text-xs text-gray-500">{
                       new Date(step.timestamp).toLocaleTimeString()
                     }</span>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             )

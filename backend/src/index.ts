@@ -6,13 +6,13 @@ import fs from 'fs';
 import { basePrompt as NodeBasePrompt } from "./defaults/node";
 import { basePrompt as ReactBasePrompt } from "./defaults/react";
 import { getSystemPrompt,BASE_PROMPT } from "./prompts";
-
+import cors from 'cors';
 
 dotenv.config();
 const anthropic = new Anthropic();
 const app = express();
 app.use(express.json());
-
+app.use(cors());
 
 app.post("/template", async (req, res) => {
     const { prompt } = req.body;
