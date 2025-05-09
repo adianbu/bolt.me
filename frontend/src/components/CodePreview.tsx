@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Editor from "@monaco-editor/react";
 import { FileItem } from '../types';
 import { Code2, Eye } from 'lucide-react';
@@ -10,6 +10,21 @@ interface CodePreviewProps {
 const CodePreview: React.FC<CodePreviewProps> = ({ file }) => {
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
   const [editorKey, setEditorKey] = useState<number>(0);
+  const editorRef = useRef<any>(null);
+
+  // Handle editor mounting
+  const handleEditorDidMount = (editor: any) => {
+    editorRef.current = editor;
+  };
+
+  // Cleanup editor instance when unmounting or changing files
+  useEffect(() => {
+    return () => {
+      if (editorRef.current) {
+        editorRef.current.dispose();
+      }
+    };
+  }, [file]);
 
   // Update editorKey when file changes to force re-render of the Editor component
   useEffect(() => {
@@ -81,11 +96,12 @@ const CodePreview: React.FC<CodePreviewProps> = ({ file }) => {
       <div className="flex-grow overflow-hidden">
         {activeTab === 'code' ? (
           <Editor
-            key={editorKey} // Add key prop to force re-render when file changes
+            key={editorKey}
             height="100%"
-            language={getLanguageId(file)} // Change from defaultLanguage to language
-            value={file.content} // Change from defaultValue to value
+            language={getLanguageId(file)}
+            value={file.content}
             theme="vs-dark"
+            onMount={handleEditorDidMount}
             options={{
               readOnly: true,
               minimap: { enabled: false },
