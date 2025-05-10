@@ -9,6 +9,7 @@ import Button from '../components/ui/Button';
 import { FileItem, Step, StepType } from '../types';
 import axios from 'axios';
 import { parseXml } from '../utils/parseXML';
+import { useWebContainer } from '../hooks/useWebContainer';
 
 const ResultsPage: React.FC = () => {
   const [prompt, setPrompt] = useState<string>('');
@@ -17,6 +18,20 @@ const ResultsPage: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
   const [currentStepId, setCurrentStepId] = useState<string | undefined>();
   const [isGenerating, setIsGenerating] = useState(true);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [isServerRunning, setIsServerRunning] = useState(false);
+  const [isWebContainerReady, setIsWebContainerReady] = useState(false);
+  const [webContainerError, setWebContainerError] = useState<string | null>(null);
+  
+  // Initialize web container
+  const webContainer = useWebContainer();
+
+  // Track web container readiness
+  useEffect(() => {
+    if (webContainer) {
+      setIsWebContainerReady(true);
+    }
+  }, [webContainer]);
 
   /**
    * This useEffect handles the dynamic file generation based on pending steps.
@@ -102,6 +117,98 @@ const ResultsPage: React.FC = () => {
     }
   }, [steps, fileItems]);
 
+  // Effect to write files to web container when it's ready and start the server
+  useEffect(() => {
+    const createMountStructure = (files: FileItem[]): Record<string, any> => {
+      const mountStructure: Record<string, any> = {};
+  
+      const processFile = (file: FileItem, isRootFolder: boolean) => {  
+        if (file.type === 'folder') {
+          // For folders, create a directory entry
+          mountStructure[file.name] = {
+            directory: file.children ? 
+              Object.fromEntries(
+                file.children.map(child => [child.name, processFile(child, false)])
+              ) 
+              : {}
+          };
+        } else if (file.type === 'file') {
+          if (isRootFolder) {
+            mountStructure[file.name] = {
+              file: {
+                contents: file.content || ''
+              }
+            };
+          } else {
+            // For files, create a file entry with contents
+            return {
+              file: {
+                contents: file.content || ''
+              }
+            };
+          }
+        }
+  
+        return mountStructure[file.name];
+      };
+  
+      // Process each top-level file/folder
+      files.forEach(file => processFile(file, true));
+  
+      return mountStructure;
+    };
+
+    const setupWebContainer = async () => {
+      if (isWebContainerReady && webContainer && fileItems.length > 0) {
+        try {
+          // Create mount structure from files
+          const mountStructure = createMountStructure(fileItems);
+          
+          console.log('Mount structure:', mountStructure);
+
+          // Mount all files at once
+          await webContainer.mount(mountStructure);
+          
+          // try {
+          //   // Install dependencies
+          //   console.log('Installing dependencies...');
+          //   const installProcess = await webContainer.spawn('npm', ['install']);
+            
+          //   // Pipe install process output to console
+          //   installProcess.output.pipeTo(new WritableStream({
+          //     write(data) {
+          //       console.log(data);
+          //     }
+          //   }));
+
+          //   // Start dev server
+          //   await webContainer.spawn('npm', ['run', 'dev']);
+
+          //   // Listen for server-ready event
+          //   webContainer.on('server-ready', (port, url) => {
+          //     console.log('Server URL:', url);
+          //     console.log('Server Port:', port);
+          //     setPreviewUrl(url);
+          //     setIsServerRunning(true);
+          //     setIsGenerating(false);
+          //   });
+
+          // } catch (err) {
+          //   console.error('Error setting up server:', err);
+          //   setWebContainerError(err instanceof Error ? err.message : 'Failed to set up server');
+          //   setIsGenerating(false);
+          // }
+        } catch (err) {
+          console.error('Error mounting files to web container:', err);
+          setWebContainerError(err instanceof Error ? err.message : 'Failed to mount files to web container');
+          setIsGenerating(false);
+        }
+      }
+    };
+
+    setupWebContainer();
+  }, [isWebContainerReady, webContainer, fileItems]);
+
   const Initialize = async () => {
     try {
       const savedPrompt = localStorage.getItem('currentPrompt');
@@ -134,11 +241,24 @@ const ResultsPage: React.FC = () => {
     Initialize();
   }, []);
 
+  // Function to open preview in a new tab
+  const openPreview = () => {
+    if (previewUrl) {
+      window.open(previewUrl, '_blank');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
       <Header />
       
       <main className="flex-grow pt-24 pb-12 px-4 container mx-auto">
+        {webContainerError && (
+          <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-8 text-red-200">
+            <p>Failed to initialize web container: {webContainerError}</p>
+          </div>
+        )}
+        
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center">
             <Link to="/" className="text-gray-400 hover:text-blue-400 mr-4">
@@ -151,8 +271,9 @@ const ResultsPage: React.FC = () => {
             <Button 
               variant="outline" 
               className="mr-3"
-              disabled={isGenerating}
+              disabled={isGenerating || !isServerRunning}
               icon={<ExternalLink className="h-4 w-4" />}
+              onClick={openPreview}
             >
               Preview Site
             </Button>
@@ -188,7 +309,13 @@ const ResultsPage: React.FC = () => {
           
           {/* CodePreview - 50% width */}
           <div className="w-1/2">
-            <CodePreview file={selectedFile} />
+            <CodePreview 
+              file={selectedFile} 
+              webContainer={{
+                instance: webContainer || null,
+                isReady: isWebContainerReady
+              }}
+            />
           </div>
         </div>
       </main>

@@ -2,12 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import Editor from "@monaco-editor/react";
 import { FileItem } from '../types';
 import { Code2, Eye } from 'lucide-react';
+import { WebContainer } from '@webcontainer/api';
+import { PreviewFrame } from './PreviewFrame';
 
 interface CodePreviewProps {
   file: FileItem | null;
+  webContainer?: {
+    instance: WebContainer | null;
+    isReady: boolean;
+  };
+  projectPreviewUrl?: string;
 }
 
-const CodePreview: React.FC<CodePreviewProps> = ({ file }) => {
+const CodePreview: React.FC<CodePreviewProps> = ({ projectPreviewUrl, file, webContainer }) => {
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
   const [editorKey, setEditorKey] = useState<number>(0);
   const editorRef = useRef<any>(null);
@@ -76,6 +83,7 @@ const CodePreview: React.FC<CodePreviewProps> = ({ file }) => {
           </button>
           <button
             onClick={() => setActiveTab('preview')}
+            disabled={!webContainer?.instance}
             className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
               activeTab === 'preview'
                 ? 'bg-gray-700 text-white'
@@ -113,17 +121,15 @@ const CodePreview: React.FC<CodePreviewProps> = ({ file }) => {
           />
         ) : (
           <div className="h-full">
-            {file.type.toLowerCase() === 'html' ? (
-              <iframe
-                srcDoc={file.content}
-                className="w-full h-full bg-white"
-                title="Preview"
-                sandbox="allow-scripts"
-              />
-            ) : (
+            {!webContainer?.instance ? (
               <div className="flex items-center justify-center h-full text-gray-400">
-                Preview not available for this file type
+                <p>Preview not available. Web container not initialized.</p>
               </div>
+            ) : (
+              <PreviewFrame 
+                files={[file]} 
+                webContainer={webContainer.instance} 
+              />
             )}
           </div>
         )}
