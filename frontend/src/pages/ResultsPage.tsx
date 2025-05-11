@@ -231,17 +231,31 @@ const ResultsPage: React.FC = () => {
     setupWebContainer();
   }, [isWebContainerReady, webContainer, fileItems]);
 
-  const Initialize = async () => {
+  useEffect(() => {
+    // Enable dark mode
+    document.documentElement.classList.add("dark");
+
+    // Retrieve the prompt from local storage
+    const savedPrompt = localStorage.getItem("currentPrompt");
+    if (savedPrompt) {
+      setPrompt(savedPrompt);
+    }
+    if (savedPrompt) {
+      Initialize(savedPrompt);
+    }
+  }, []);
+
+  // Update the Initialize function to accept the prompt as a parameter
+  const Initialize = async (savedPrompt: string) => {
     try {
-      const savedPrompt = localStorage.getItem("currentPrompt");
       if (savedPrompt) {
         //loads template
         const response = await axios.post("http://localhost:3000/template", {
           prompt: savedPrompt.trim(),
         });
-
+  
         const { prompts, uiPrompts } = response.data;
-
+  
         setSteps(
           parseXml(uiPrompts[0]).map((x: Step) => ({
             ...x,
@@ -251,7 +265,7 @@ const ResultsPage: React.FC = () => {
        
         //loads files for prompt
         const stepsResponse = await axios.post(`http://localhost:3000/chat`, {
-          messages: [...prompts, prompt].map((content) => ({
+          messages: [...prompts, savedPrompt].map((content) => ({
             role: "user",
             content,
           })),
@@ -281,18 +295,6 @@ const ResultsPage: React.FC = () => {
       console.error("Error fetching data:", error);
     }
   };
-
-  useEffect(() => {
-    // Enable dark mode
-    document.documentElement.classList.add("dark");
-
-    // Retrieve the prompt from local storage
-    const savedPrompt = localStorage.getItem("currentPrompt");
-    if (savedPrompt) {
-      setPrompt(savedPrompt);
-    }
-    Initialize();
-  }, []);
 
   // Function to open preview in a new tab
   const openPreview = () => {
