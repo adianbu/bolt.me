@@ -1,12 +1,12 @@
-# bolt.me
+# bolt.me 🚀
 
 A modern AI-powered website builder that generates complete, working websites from text prompts.
 
-## Overview
+## Overview 🌟
 
 bolt.me is a full-stack web application that allows users to describe the website they want to create and watch it come to life in seconds. The application uses AI to generate clean, responsive code based on user prompts.
 
-## Features
+## Features ✨
 
 - **AI-Powered Website Generation**: Create complete websites using just text descriptions
 - **Lightning Fast**: Generate websites in seconds with just a text prompt
@@ -16,9 +16,9 @@ bolt.me is a full-stack web application that allows users to describe the websit
 - **Code Editor**: Examine and modify the generated code
 - **WebContainer Integration**: Run the generated code directly in the browser
 
-## Tech Stack
+## Tech Stack 🛠️
 
-### Frontend
+### Frontend 🎨
 - React 18
 - TypeScript
 - Vite
@@ -27,22 +27,22 @@ bolt.me is a full-stack web application that allows users to describe the websit
 - WebContainer API (for in-browser code execution)
 - Lucide React (for icons)
 
-### Backend
+### Backend 🔧
 - Node.js
 - Express
 - TypeScript
 - Anthropic AI SDK (Claude)
 
 
-## Development Setup
+## Development Setup 🔨
 
-### Prerequisites
+### Prerequisites 📋
 
 - Node.js (v20 or higher)
 - Docker and Docker Compose
 - Kubernetes (for production deployment)
 
-### Environment Variables
+### Environment Variables 🔐
 
 #### Backend
 - `ANTHROPIC_API_KEY`: Your Anthropic API key for Claude
@@ -50,7 +50,7 @@ bolt.me is a full-stack web application that allows users to describe the websit
 #### Frontend
 - `VITE_API_URL`: Backend API URL (default: http://localhost:3000)
 
-### Local Development
+### Local Development 💻
 
 1. Start the development environment:
 ```bash
@@ -60,8 +60,8 @@ docker-compose up --build
 - Frontend: http://localhost:8080
 - Backend API: http://localhost:3000
 
-## Deployment
-### Docker Deployment
+## Deployment 🚀
+### Docker Deployment 🐳
 The project includes Docker configurations for containerized deployment:
 
 ```bash
@@ -70,29 +70,29 @@ docker-compose -f docker-compose.yml up
 --build -d
 ```
 
-### Kubernetes Deployment
+### Kubernetes Deployment ⚓
 Deploy to a Kubernetes cluster:
 
 ```bash
 kubectl apply -f k8s-deployment.yaml
 ```
 
-### CI/CD Pipeline
+### CI/CD Pipeline 🔄
 The project uses GitHub Actions for automated deployment:
 
-1. Build and Push Images :
+1. Build and Push Images 📦:
    
    - Builds Docker images for frontend and backend
    - Pushes images to Docker Hub
-2. Deploy :
+2. Deploy 🎯:
    
    - Deploys to Kubernetes cluster
    - Updates services and ingress configurations
-Required GitHub Secrets:
+Required GitHub Secrets🔑:
 
 - DOCKERHUB_USERNAME : Docker Hub username
 - DOCKERHUB_TOKEN : Docker Hub access token
 - KUBE_CONFIG : Kubernetes configuration
 
-## License
+## License ⚖️
 MIT License
