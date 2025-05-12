@@ -45,7 +45,7 @@ const ExecutionSteps: React.FC<ExecutionStepsProps> = ({ steps = [], currentStep
           {steps.map((step, index) => (
             step && (
               <div 
-                key={step.id}
+                key={`${step.id}-${index}`}
                 className={`relative pl-8 pb-1 ${
                   index === steps.length - 1 ? 'pb-0' : ''
                 }`}
