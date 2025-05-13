@@ -24,11 +24,16 @@ spec:
       - name: backend
         image: ghcr.io/adianbu/bolt-me-backend:latest
         imagePullPolicy: Always
-        ports:
-        - containerPort: 3000
         env:
         - name: NODE_ENV
           value: "production"
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: ANTHROPIC_API_KEY
+        ports:
+        - containerPort: 3000
         resources:
           limits:
             cpu: "250m"
