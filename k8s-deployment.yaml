@@ -9,7 +9,7 @@ metadata:
   name: backend
   namespace: bolt-me
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: backend
@@ -18,9 +18,11 @@ spec:
       labels:
         app: backend
     spec:
+      imagePullSecrets:
+      - name: ghcr-secret
       containers:
       - name: backend
-        image: ${REGISTRY}/bolt-me-backend:latest
+        image: ghcr.io/adianbu/bolt-me-backend:latest
         ports:
         - containerPort: 3000
         env:
@@ -28,11 +30,11 @@ spec:
           value: "production"
         resources:
           limits:
-            cpu: "500m"
-            memory: "512Mi"
-          requests:
-            cpu: "200m"
+            cpu: "250m"
             memory: "256Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
 ---
 apiVersion: v1
 kind: Service
@@ -53,7 +55,7 @@ metadata:
   name: frontend
   namespace: bolt-me
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: frontend
@@ -62,18 +64,20 @@ spec:
       labels:
         app: frontend
     spec:
+      imagePullSecrets:
+      - name: ghcr-secret
       containers:
       - name: frontend
-        image: ${REGISTRY}/bolt-me-frontend:latest
+        image: ghcr.io/adianbu/bolt-me-frontend:latest
         ports:
         - containerPort: 80
         resources:
           limits:
-            cpu: "300m"
-            memory: "256Mi"
-          requests:
-            cpu: "100m"
+            cpu: "200m"
             memory: "128Mi"
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
 ---
 apiVersion: v1
 kind: Service
@@ -99,10 +103,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - bolt.me
+    - boltme.site
     secretName: bolt-me-tls
   rules:
-  - host: bolt.me
+  - host: boltme.site
     http:
       paths:
       - path: /
