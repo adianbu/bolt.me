@@ -59,6 +59,22 @@ app.post("/chat", async (req, res) => {
     });
 })
 
+app.post("/test", async (req, res) => {
+    const messages = req.body.messages;
+    const response = await anthropic.messages.create({
+        messages: messages,
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 10,
+        system: "You are a helpful assistant."
+    })
+
+    console.log(response);
+
+    res.json({
+        response: (response.content[0] as TextBlock)?.text
+    });
+})
+
 app.listen(3000, () => {
     console.log("Server is running on port 3000");
 })

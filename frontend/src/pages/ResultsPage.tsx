@@ -249,6 +249,7 @@ const ResultsPage: React.FC = () => {
   const Initialize = async (savedPrompt: string) => {
     try {
       if (savedPrompt) {
+        setLoading(true);
         //loads template
         const response = await axios.post("http://localhost:3000/template", {
           prompt: savedPrompt.trim(),
@@ -293,6 +294,8 @@ const ResultsPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -349,20 +352,20 @@ const ResultsPage: React.FC = () => {
           </div>
         )}
 
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 space-y-4 sm:space-y-0">
           <div className="flex items-center">
             <Link to="/" className="text-gray-400 hover:text-blue-400 mr-4">
               <ArrowLeft className="h-5 w-5" />
             </Link>
-            <h1 className="text-2xl font-bold text-white">
+            <h1 className="text-xl sm:text-2xl font-bold text-white">
               Building Your Website
             </h1>
           </div>
 
-          <div className="flex items-center">
+          <div className="flex items-center w-full sm:w-auto space-x-3">
             <Button
               variant="outline"
-              className="mr-3"
+              className="flex-1 sm:flex-none"
               disabled={isGenerating || !isServerRunning}
               icon={<ExternalLink className="h-4 w-4" />}
               onClick={openPreview}
@@ -370,7 +373,12 @@ const ResultsPage: React.FC = () => {
               Preview Site
             </Button>
 
-            <Button disabled={isGenerating}>Download Code</Button>
+            <Button 
+              disabled={isGenerating}
+              className="flex-1 sm:flex-none"
+            >
+              Download Code
+            </Button>
           </div>
         </div>
 
@@ -379,18 +387,28 @@ const ResultsPage: React.FC = () => {
             <h2 className="text-sm font-medium text-gray-400 mb-2">
               Your Prompt
             </h2>
-            <p className="text-gray-200">{prompt}</p>
+            <p className="text-gray-200 break-words">{prompt}</p>
           </div>
         )}
 
-        <div className="flex flex-row gap-4 h-[calc(100vh-300px)]">
-          {/* ExecutionSteps - 25% width */}
+        <div className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-300px)]">
+          {/* ExecutionSteps - Full width on mobile, 25% on desktop */}
           <div
-            className="w-1/4 overflow-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-900 [&::-webkit-scrollbar-thumb]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-gray-900 hover:[&::-webkit-scrollbar-thumb]:bg-gray-600"
-            style={{ maxHeight: "100%" }}
+            className="w-full lg:w-1/4 overflow-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-900 [&::-webkit-scrollbar-thumb]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-gray-900 hover:[&::-webkit-scrollbar-thumb]:bg-gray-600 min-h-[300px] lg:min-h-0"
           >
             <ExecutionSteps steps={steps} currentStepId={currentStepId} />
-            
+            <div className="mt-6">
+              {loading && (
+                <div className="flex flex-col items-center justify-center space-y-3 bg-gray-800 border border-gray-700 rounded-lg p-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+                  <div className="flex flex-col items-center text-gray-300 text-sm">
+                    <div className="animate-pulse">Creating files...</div>
+                    <div className="animate-pulse delay-75">Generating code...</div>
+                    <div className="animate-pulse delay-150">Building components...</div>
+                  </div>
+                </div>
+              )}
+            </div>
             {/* Follow-up prompt input */}
             <div className="mt-6 bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm font-medium text-gray-400 mb-2">Follow-up Prompt</h3>
@@ -420,16 +438,16 @@ const ResultsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* FileExplorer - 25% width */}
-          <div className="w-1/4 overflow-auto">
+          {/* FileExplorer - Full width on mobile, 25% on desktop */}
+          <div className="w-full lg:w-1/4 overflow-auto min-h-[300px] lg:min-h-0">
             <FileExplorer
               files={fileItems}
               onFileSelect={(fileItem) => setSelectedFile(fileItem)}
             />
           </div>
 
-          {/* CodePreview - 50% width */}
-          <div className="w-1/2">
+          {/* CodePreview - Full width on mobile, 50% on desktop */}
+          <div className="w-full lg:w-1/2 min-h-[300px] lg:min-h-0">
             <CodePreview
               file={selectedFile}
               webContainer={{
