@@ -24,11 +24,6 @@ app.get('/api', (req, res) => {
   });
 
 app.post("/api/template", async (req, res) => {
-    const authToken = req.headers.authorization;
-    if (!authToken || !authToken.startsWith('Bearer ')) {
-        res.status(401).json({ error: 'Missing or invalid authorization token' });
-        return;
-    }
     const { prompt } = req.body;
     const response = await anthropic.messages.create({
         messages: [{role: 'user', content: prompt}],
