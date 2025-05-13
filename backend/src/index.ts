@@ -14,11 +14,11 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-app.get('/api/', (req, res) => {
+app.get('/api', (req, res) => {
     res.send('API is working');
   });
-  
-app.post("/template", async (req, res) => {
+
+app.post("/api/template", async (req, res) => {
     const { prompt } = req.body;
     const response = await anthropic.messages.create({
         messages: [{role: 'user', content: prompt}],
@@ -47,7 +47,7 @@ app.post("/template", async (req, res) => {
 });
 
 
-app.post("/chat", async (req, res) => {
+app.post("/api/chat", async (req, res) => {
     const messages = req.body.messages;
     const response = await anthropic.messages.create({
         messages: messages,
@@ -63,7 +63,7 @@ app.post("/chat", async (req, res) => {
     });
 })
 
-app.post("/test", async (req, res) => {
+app.post("/api/test", async (req, res) => {
     const messages = req.body.messages;
     const response = await anthropic.messages.create({
         messages: messages,

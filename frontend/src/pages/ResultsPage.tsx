@@ -251,7 +251,7 @@ const ResultsPage: React.FC = () => {
       if (savedPrompt) {
         setLoading(true);
         //loads template
-        const response = await axios.post("http://localhost:3000/template", {
+        const response = await axios.post("https://boltme.site/api/template", {
           prompt: savedPrompt.trim(),
         });
   
@@ -265,7 +265,7 @@ const ResultsPage: React.FC = () => {
         );
        
         //loads files for prompt
-        const stepsResponse = await axios.post(`http://localhost:3000/chat`, {
+        const stepsResponse = await axios.post(`https://boltme.site/api/chat`, {
           messages: [...prompts, savedPrompt].map((content) => ({
             role: "user",
             content,
@@ -317,7 +317,7 @@ const ResultsPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const stepsResponse = await axios.post(`http://localhost:3000/chat`, {
+      const stepsResponse = await axios.post(`https://boltme.site/api/chat`, {
         messages: [...llmMessages, newMessage]
       });
 
