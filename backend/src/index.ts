@@ -12,13 +12,23 @@ dotenv.config();
 const anthropic = new Anthropic();
 const app = express();
 app.use(express.json());
-app.use(cors());
+// Update your CORS configuration at the top of the file
+app.use(cors({
+    origin: ['http://localhost:5173', 'https://boltme.site'],
+    methods: ['GET', 'POST'],
+    credentials: true
+}));
 
 app.get('/api', (req, res) => {
     res.send('API is working');
   });
 
 app.post("/api/template", async (req, res) => {
+    const authToken = req.headers.authorization;
+    if (!authToken || !authToken.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Missing or invalid authorization token' });
+        return;
+    }
     const { prompt } = req.body;
     const response = await anthropic.messages.create({
         messages: [{role: 'user', content: prompt}],
@@ -48,6 +58,11 @@ app.post("/api/template", async (req, res) => {
 
 
 app.post("/api/chat", async (req, res) => {
+    const authToken = req.headers.authorization;
+    if (!authToken || !authToken.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Missing or invalid authorization token' });
+        return;
+    }
     const messages = req.body.messages;
     const response = await anthropic.messages.create({
         messages: messages,
@@ -64,6 +79,11 @@ app.post("/api/chat", async (req, res) => {
 })
 
 app.post("/api/test", async (req, res) => {
+    const authToken = req.headers.authorization;
+    if (!authToken || !authToken.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Missing or invalid authorization token' });
+        return;
+    }
     const messages = req.body.messages;
     const response = await anthropic.messages.create({
         messages: messages,

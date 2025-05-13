@@ -19,10 +19,11 @@ spec:
         app: backend
     spec:
       imagePullSecrets:
-      - name: ghcr-secret
+      - name: ghcr-pull-secret
       containers:
       - name: backend
         image: ghcr.io/adianbu/bolt-me-backend:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 3000
         env:
@@ -65,10 +66,11 @@ spec:
         app: frontend
     spec:
       imagePullSecrets:
-      - name: ghcr-secret
+      - name: ghcr-pull-secret
       containers:
       - name: frontend
         image: ghcr.io/adianbu/bolt-me-frontend:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
         resources:

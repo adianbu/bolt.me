@@ -253,6 +253,10 @@ const ResultsPage: React.FC = () => {
         //loads template
         const response = await axios.post("https://boltme.site/api/template", {
           prompt: savedPrompt.trim(),
+        }, {
+          headers: {
+            Authorization: `Bearer abcd123`
+          }
         });
   
         const { prompts, uiPrompts } = response.data;
@@ -270,6 +274,10 @@ const ResultsPage: React.FC = () => {
             role: "user",
             content,
           })),
+        }, {
+          headers: {
+            Authorization: `Bearer abcd123`
+          }
         });
         
         setSteps((s) => [
@@ -319,6 +327,10 @@ const ResultsPage: React.FC = () => {
     try {
       const stepsResponse = await axios.post(`https://boltme.site/api/chat`, {
         messages: [...llmMessages, newMessage]
+      }, {
+        headers: {
+          Authorization: `Bearer abcd123`
+        }
       });
 
       setLlmMessages(x => [...x, newMessage]);
