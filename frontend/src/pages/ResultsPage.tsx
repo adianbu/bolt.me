@@ -251,7 +251,7 @@ const ResultsPage: React.FC = () => {
       if (savedPrompt) {
         setLoading(true);
         //loads template
-        const response = await axios.post("https://boltme.site/api/template", {
+        const response = await axios.post("http://localhost:3000/api/template", {
           prompt: savedPrompt.trim(),
         }, {
           headers: {
@@ -269,7 +269,7 @@ const ResultsPage: React.FC = () => {
         );
        
         //loads files for prompt
-        const stepsResponse = await axios.post(`https://boltme.site/api/chat`, {
+        const stepsResponse = await axios.post(`http://localhost:3000/api/chat`, {
           messages: [...prompts, savedPrompt].map((content) => ({
             role: "user",
             content,
