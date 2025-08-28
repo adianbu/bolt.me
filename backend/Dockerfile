@@ -11,13 +11,16 @@ RUN addgroup -g 1001 -S nodejs && \
 
 # Copy package files and install dependencies
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci && npm cache clean --force
 
 # Copy source code
 COPY . .
 
 # Build TypeScript
 RUN npm run build || (echo "TypeScript build failed" && exit 1)
+
+# Remove dev dependencies to reduce image size
+RUN npm ci --only=production && npm cache clean --force
 
 # Create .env file from example if it doesn't exist
 RUN if [ ! -f .env ]; then cp -n .env.example .env || echo "No .env.example found"; fi
