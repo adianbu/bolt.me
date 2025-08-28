@@ -5,20 +5,61 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    image: ${REGISTRY_NAME:-localhost}/bolt-frontend:${IMAGE_TAG:-latest}
     ports:
-      - "8080:80"
+      - "${FRONTEND_PORT:-8080}:80"
     environment:
-      - VITE_API_URL=http://localhost:3000
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:3000}
     depends_on:
       - backend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - bolt-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "${LOG_MAX_SIZE:-10m}"
+        max-file: "${LOG_MAX_FILE:-3}"
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    image: ${REGISTRY_NAME:-localhost}/bolt-backend:${IMAGE_TAG:-latest}
     ports:
-      - "3000:3000"
+      - "${BACKEND_PORT:-3000}:3000"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=${NODE_ENV:-development}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - PORT=3000
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - bolt-network
     volumes:
-      - ./backend/.env:/app/.env
+      - ${ENV_FILE_PATH:-./backend/.env}:/app/.env:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "${LOG_MAX_SIZE:-10m}"
+        max-file: "${LOG_MAX_FILE:-3}"
+
+networks:
+  bolt-network:
+    driver: bridge
+
+volumes:
+  backend-logs:
+  frontend-logs:

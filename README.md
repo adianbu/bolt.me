@@ -52,22 +52,38 @@ bolt.me is a full-stack web application that allows users to describe the websit
 
 ### Local Development 💻
 
-1. Start the development environment:
+1. **For local development:**
 ```bash
-docker-compose up --build
+# Use local environment configuration
+docker-compose --env-file .env.local up --build
 ```
-2. Access the application:
+
+2. **For production testing:**
+```bash
+# Use production environment configuration
+docker-compose --env-file .env.production up --build
+```
+
+3. Access the application:
 - Frontend: http://localhost:8080
 - Backend API: http://localhost:3000
 
 ## Deployment 🚀
+
+### Azure Deployment ☁️
+For detailed Azure deployment instructions, see:
+- [Azure Deployment Guide](AZURE_DEPLOYMENT.md) - Comprehensive guide
+- [Azure Quick Start](AZURE_QUICKSTART.md) - 10-minute setup
+
 ### Docker Deployment 🐳
-The project includes Docker configurations for containerized deployment:
+The project uses a single, environment-aware Docker Compose configuration:
 
 ```bash
-docker-compose -f docker-compose.yml up
+# Local development
+docker-compose --env-file .env.local up --build
 
---build -d
+# Production deployment
+docker-compose --env-file .env.production up --build -d
 ```
 
 ### Kubernetes Deployment ⚓
@@ -78,21 +94,22 @@ kubectl apply -f k8s-deployment.yaml
 ```
 
 ### CI/CD Pipeline 🔄
-The project uses GitHub Actions for automated deployment:
+The project uses GitHub Actions for automated image building:
 
-1. Build and Push Images 📦:
-   
-   - Builds Docker images for frontend and backend
-   - Pushes images to Docker Hub
-2. Deploy 🎯:
-   
-   - Deploys to Kubernetes cluster
-   - Updates services and ingress configurations
-Required GitHub Secrets🔑:
+**What happens automatically:**
+- ✅ Builds Docker images for frontend and backend
+- ✅ Pushes images to GitHub Container Registry (ghcr.io)
+- ✅ Supports multi-platform builds (AMD64, ARM64)
+- ✅ Automatic tagging based on branches and releases
 
-- DOCKERHUB_USERNAME : Docker Hub username
-- DOCKERHUB_TOKEN : Docker Hub access token
-- KUBE_CONFIG : Kubernetes configuration
+**Manual deployment options:**
+- 🅰️ **Azure**: Use provided ARM templates and scripts
+- ⚓ **Kubernetes**: Use `k8s-deployment.yaml`
+- 🐳 **Docker**: Use environment-specific configurations
+
+**Required GitHub Secrets:** 🔑
+- `GITHUB_TOKEN`: Automatically provided by GitHub
+- No additional setup required!
 
 ## License ⚖️
 MIT License
