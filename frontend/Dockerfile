@@ -14,7 +14,7 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM nginx:1.27.2-alpine
+FROM nginx:1.26-alpine
 
 # Install additional tools for debugging (optional)
 RUN apk add --no-cache curl
