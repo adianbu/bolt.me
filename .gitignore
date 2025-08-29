@@ -1,2 +1,13 @@
 cluster-issuer.yaml
 
+# Environment files with sensitive data
+.env.local
+.env.development.local
+.env.production.local
+.env.test.local
+.env.production
+
+# Backup environment files
+.env.backup
+.env.*.backup
+
