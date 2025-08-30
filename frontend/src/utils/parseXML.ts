@@ -62,13 +62,22 @@ export function parseXml(response: string): Step[] {
   
       if (type === 'file') {
         // File creation step
+        let cleanedContent = content.trim();
+        
+        // Remove markdown code block formatting if present
+        const codeBlockRegex = /^```[a-zA-Z]*\n?([\s\S]*?)\n?```$/;
+        const match = cleanedContent.match(codeBlockRegex);
+        if (match) {
+          cleanedContent = match[1].trim();
+        }
+        
         steps.push({
           id: stepId++,
           title: `Create ${filePath || 'file'}`,
           description: '',
           type: StepType.CreateFile,
           status: 'pending',
-          code: content.trim(),
+          code: cleanedContent,
           path: filePath
         });
       } else if (type === 'shell') {

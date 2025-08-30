@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import ExecutionSteps from "../components/ExecutionSteps";
@@ -353,6 +353,83 @@ const ResultsPage: React.FC = () => {
     }
   };
 
+  // Download functionality
+  const downloadCode = async () => {
+    console.log('Download function called');
+    console.log('FileItems:', fileItems);
+    
+    if (!fileItems || fileItems.length === 0) {
+      alert('No files available to download');
+      return;
+    }
+
+    try {
+      console.log('Attempting to import JSZip...');
+      // Use dynamic import for JSZip to reduce bundle size
+      const JSZip = (await import('jszip')).default;
+      console.log('JSZip imported successfully:', JSZip);
+      const zip = new JSZip();
+      
+      let fileCount = 0;
+
+      // Add all files to the zip
+      const addFilesToZip = (files: FileItem[], currentPath = '') => {
+        files.forEach((file) => {
+          const filePath = currentPath ? `${currentPath}/${file.name}` : file.name;
+          console.log(`Processing file: ${filePath}, type: ${file.type}`);
+          
+          if (file.type === 'folder' && file.children) {
+            // Recursively add files from folders
+            addFilesToZip(file.children, filePath);
+          } else if (file.type === 'file' && file.content) {
+            // Add file to zip
+            console.log(`Adding file to zip: ${filePath}`);
+            zip.file(filePath, file.content);
+            fileCount++;
+          } else if (file.type === 'file' && !file.content) {
+            console.warn(`File ${filePath} has no content`);
+            // Add empty file
+            zip.file(filePath, '');
+            fileCount++;
+          }
+        });
+      };
+
+      addFilesToZip(fileItems);
+      console.log(`Total files added to zip: ${fileCount}`);
+      
+      if (fileCount === 0) {
+        alert('No files with content found to download');
+        return;
+      }
+
+      console.log('Generating zip file...');
+      // Generate zip file
+      const content = await zip.generateAsync({ type: 'blob' });
+      console.log('Zip file generated, size:', content.size);
+      
+      // Create download link
+      const url = window.URL.createObjectURL(content);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `bolt-generated-${Date.now()}.zip`;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      console.log('Triggering download...');
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      console.log('Download triggered successfully');
+    } catch (error) {
+      console.error('Error creating zip file:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      alert(`Error downloading files: ${error instanceof Error ? error.message : 'Unknown error'}. Please check the console for details.`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
       <Header />
@@ -386,8 +463,10 @@ const ResultsPage: React.FC = () => {
             </Button>
 
             <Button 
-              disabled={isGenerating}
+              disabled={isGenerating || fileItems.length === 0}
               className="flex-1 sm:flex-none"
+              icon={<Download className="h-4 w-4" />}
+              onClick={downloadCode}
             >
               Download Code
             </Button>
