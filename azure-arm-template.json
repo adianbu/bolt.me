@@ -288,21 +288,6 @@
     "costOptimizationLevel": {
       "type": "string",
       "value": "[parameters('costOptimizationLevel')]"
-    },
-    "resourcesSummary": {
-      "type": "object",
-      "value": {
-        "frontendResources": {
-          "cpu": "[variables('selectedConfig').frontendCpu]",
-          "memory": "[concat(variables('selectedConfig').frontendMemory, 'GB')]"
-        },
-        "backendResources": {
-          "cpu": "[variables('selectedConfig').backendCpu]",
-          "memory": "[concat(variables('selectedConfig').backendMemory, 'GB')]"
-        },
-        "monitoringEnabled": "[variables('selectedConfig').enableMonitoring]",
-        "logRetentionDays": "[variables('selectedConfig').logRetentionDays]"
-      }
     }
   }
 }
