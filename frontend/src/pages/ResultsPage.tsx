@@ -10,6 +10,7 @@ import { FileItem, Step, StepType } from "../types";
 import axios from "axios";
 import { parseXml } from "../utils/parseXML";
 import { useWebContainer } from "../hooks/useWebContainer";
+import { WebContainer } from "@webcontainer/api";
 
 const ResultsPage: React.FC = () => {
   const [prompt, setPrompt] = useState<string>("");
@@ -28,7 +29,6 @@ const ResultsPage: React.FC = () => {
   const [userPrompt, setUserPrompt] = useState<string>(""); // New state for follow-up prompt
   const [loading, setLoading] = useState<boolean>(false); // Loading state for follow-up prompt
 
-  // Initialize web container
   const webContainer = useWebContainer();
 
   // Track web container readiness
@@ -129,6 +129,8 @@ const ResultsPage: React.FC = () => {
           status: "completed",
         }))
       );
+      // Enable download button when files are ready
+      setIsGenerating(false);
     }
   }, [steps, fileItems]);
 
@@ -304,6 +306,7 @@ const ResultsPage: React.FC = () => {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
+      setIsGenerating(false); // Enable download button after generation completes
     }
   };
 
@@ -357,10 +360,20 @@ const ResultsPage: React.FC = () => {
   const downloadCode = async () => {
     console.log('Download function called');
     console.log('FileItems:', fileItems);
+    console.log('FileItems length:', fileItems.length);
     
+    // Enhanced validation
     if (!fileItems || fileItems.length === 0) {
-      alert('No files available to download');
+      alert('No files available to download. Please generate a website first by entering a prompt.');
       return;
+    }
+
+    // Show loading state
+    const button = document.querySelector('[data-download-button]') as HTMLButtonElement;
+    const originalText = button?.textContent;
+    if (button) {
+      button.disabled = true;
+      button.textContent = 'Preparing Download...';
     }
 
     try {
@@ -371,62 +384,134 @@ const ResultsPage: React.FC = () => {
       const zip = new JSZip();
       
       let fileCount = 0;
+      let folderCount = 0;
 
       // Add all files to the zip
       const addFilesToZip = (files: FileItem[], currentPath = '') => {
         files.forEach((file) => {
           const filePath = currentPath ? `${currentPath}/${file.name}` : file.name;
-          console.log(`Processing file: ${filePath}, type: ${file.type}`);
+          console.log(`Processing: ${filePath} (type: ${file.type})`);
           
           if (file.type === 'folder' && file.children) {
-            // Recursively add files from folders
+            // Create folder and recursively add files
+            folderCount++;
+            console.log(`Creating folder: ${filePath}`);
             addFilesToZip(file.children, filePath);
-          } else if (file.type === 'file' && file.content) {
+          } else if (file.type === 'file') {
             // Add file to zip
-            console.log(`Adding file to zip: ${filePath}`);
-            zip.file(filePath, file.content);
-            fileCount++;
-          } else if (file.type === 'file' && !file.content) {
-            console.warn(`File ${filePath} has no content`);
-            // Add empty file
-            zip.file(filePath, '');
+            const content = file.content || '// Empty file';
+            console.log(`Adding file: ${filePath} (${content.length} chars)`);
+            zip.file(filePath, content);
             fileCount++;
           }
         });
       };
 
       addFilesToZip(fileItems);
-      console.log(`Total files added to zip: ${fileCount}`);
+      console.log(`Processing complete: ${fileCount} files, ${folderCount} folders`);
       
       if (fileCount === 0) {
-        alert('No files with content found to download');
+        alert('No files found to download. The generated project might be empty.');
         return;
+      }
+
+      // Update button text
+      if (button) {
+        button.textContent = 'Creating ZIP...';
       }
 
       console.log('Generating zip file...');
       // Generate zip file
-      const content = await zip.generateAsync({ type: 'blob' });
-      console.log('Zip file generated, size:', content.size);
+      const content = await zip.generateAsync({ 
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: {
+          level: 6
+        }
+      });
+      console.log('Zip file generated successfully, size:', content.size, 'bytes');
       
-      // Create download link
+      // Update button text
+      if (button) {
+        button.textContent = 'Starting Download...';
+      }
+
+      // Create download link with better naming
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const projectName = prompt?.toLowerCase().replace(/[^a-z0-9]/g, '-').slice(0, 30) || 'website';
+      const filename = `${projectName}-${timestamp}.zip`;
+      
       const url = window.URL.createObjectURL(content);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `bolt-generated-${Date.now()}.zip`;
+      link.download = filename;
       link.style.display = 'none';
+      
+      // Add to DOM and trigger download
       document.body.appendChild(link);
-      console.log('Triggering download...');
+      console.log(`Triggering download: ${filename}`);
       link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      console.log('Download triggered successfully');
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+      // Success feedback
+      console.log('Download completed successfully');
+      
+      // Show success message
+      const successDiv = document.createElement('div');
+      successDiv.className = 'fixed top-4 right-4 bg-green-600 text-white p-4 rounded-lg shadow-lg z-50';
+      successDiv.innerHTML = `
+        <div class="flex items-center space-x-2">
+          <div class="w-5 h-5 text-green-200">✓</div>
+          <div>
+            <div class="font-medium">Download Started!</div>
+            <div class="text-sm opacity-90">${fileCount} files • ${filename}</div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(successDiv);
+      
+      // Remove success message after 3 seconds
+      setTimeout(() => {
+        successDiv.remove();
+      }, 3000);
+      
     } catch (error) {
       console.error('Error creating zip file:', error);
       console.error('Error details:', {
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined
       });
-      alert(`Error downloading files: ${error instanceof Error ? error.message : 'Unknown error'}. Please check the console for details.`);
+      
+      // Show error message
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'fixed top-4 right-4 bg-red-600 text-white p-4 rounded-lg shadow-lg z-50';
+      errorDiv.innerHTML = `
+        <div class="flex items-center space-x-2">
+          <div class="w-5 h-5 text-red-200">✗</div>
+          <div>
+            <div class="font-medium">Download Failed</div>
+            <div class="text-sm opacity-90">${error instanceof Error ? error.message : 'Unknown error'}</div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(errorDiv);
+      
+      // Remove error message after 5 seconds
+      setTimeout(() => {
+        errorDiv.remove();
+      }, 5000);
+      
+    } finally {
+      // Reset button state
+      if (button && originalText) {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
     }
   };
 
@@ -452,21 +537,12 @@ const ResultsPage: React.FC = () => {
           </div>
 
           <div className="flex items-center w-full sm:w-auto space-x-3">
-            <Button
-              variant="outline"
-              className="flex-1 sm:flex-none"
-              disabled={isGenerating || !isServerRunning}
-              icon={<ExternalLink className="h-4 w-4" />}
-              onClick={openPreview}
-            >
-              Preview Site
-            </Button>
-
             <Button 
               disabled={isGenerating || fileItems.length === 0}
               className="flex-1 sm:flex-none"
               icon={<Download className="h-4 w-4" />}
               onClick={downloadCode}
+              data-download-button="true"
             >
               Download Code
             </Button>
