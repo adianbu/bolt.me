@@ -1,7 +1,14 @@
 #!/bin/bash
 
-# Bolt.me Development Startup Script
-# This script ensures the application starts with proper API key configuration
+# Bolt.me Local Development Environment Setup Script
+# Purpose: Sets up and starts the application for daily development work
+# Usage: ./local-development.sh
+# 
+# This script:
+# - Validates environment configuration (.env.local)
+# - Builds and starts containers locally for development
+# - Performs health checks and basic API validation
+# - Provides a ready-to-use development environment
 
 set -e  # Exit on error
 

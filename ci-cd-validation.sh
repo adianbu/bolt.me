@@ -1,7 +1,15 @@
 #!/bin/bash
 
-# Docker Hub Testing Script for bolt.me
-# Usage: ./test-dockerhub.sh [your-dockerhub-username]
+# Bolt.me CI/CD Validation & Docker Hub Testing Script
+# Purpose: Validates Docker images through complete CI/CD workflow testing
+# Usage: ./ci-cd-validation.sh [your-dockerhub-username]
+#
+# This script performs comprehensive testing by:
+# - Building and pushing images to Docker Hub
+# - Pulling and testing the published images
+# - Running full end-to-end validation
+# - Testing all API endpoints with proper error handling
+# - Validating the complete deployment workflow
 #
 # Prerequisites - API Keys (choose one method):
 # Method 1: Create .env.local file in project root with:
@@ -238,4 +246,4 @@ echo "docker-compose -f docker-compose.test-temp.yml down"
 # Cleanup temp file
 rm -f docker-compose.test-temp.yml
 
-echo -e "\n${GREEN}✨ Docker Hub testing completed successfully!${NC}"
+echo -e "\n${GREEN}✨ CI/CD validation completed successfully!${NC}"

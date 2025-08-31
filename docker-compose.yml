@@ -3,7 +3,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    image: ${REGISTRY_NAME:-localhost}/bolt-frontend:${IMAGE_TAG:-latest}
+    image: ${REGISTRY_NAME:-ghcr.io}/adianbu/bolt-me-frontend:${IMAGE_TAG:-latest}
     ports:
       - "${FRONTEND_PORT:-8080}:80"
     environment:
@@ -29,7 +29,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    image: ${REGISTRY_NAME:-localhost}/bolt-backend:${IMAGE_TAG:-latest}
+    image: ${REGISTRY_NAME:-ghcr.io}/adianbu/bolt-me-backend:${IMAGE_TAG:-latest}
     ports:
       - "${BACKEND_PORT:-3000}:3000"
     environment:

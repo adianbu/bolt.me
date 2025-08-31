@@ -37,7 +37,7 @@
         "performance"
       ],
       "metadata": {
-        "description": "Cost optimization level: minimal (~$15/mo), balanced (~$25/mo), performance (~$40/mo)"
+        "description": "Cost optimization level: minimal (~$12-18/mo), balanced (~$18-25/mo), performance (~$25-35/mo)"
       }
     },
     "anthropicApiKey": {
@@ -98,61 +98,38 @@
     "containerGroupName": "[concat(parameters('appName'), '-', parameters('environment'), '-', variables('uniqueId'))]",
     "dnsLabelPrefix": "[concat(parameters('appName'), '-', parameters('environment'), '-', variables('uniqueId'))]",
     
-    // Cost optimization configurations
     "costConfigs": {
       "minimal": {
         "frontendCpu": 0.25,
         "frontendMemory": 0.5,
-        "backendCpu": 0.5,
-        "backendMemory": 1.0,
-        "logRetentionDays": 7,
-        "enableMonitoring": false,
-        "storageAccountSku": "Standard_LRS"
+        "backendCpu": 0.25,
+        "backendMemory": 0.8,
+        "logRetentionDays": 30,
+        "enableMonitoring": false
       },
       "balanced": {
+        "frontendCpu": 0.25,
+        "frontendMemory": 0.8,
+        "backendCpu": 0.5,
+        "backendMemory": 1.0,
+        "logRetentionDays": 60,
+        "enableMonitoring": true
+      },
+      "performance": {
         "frontendCpu": 0.5,
         "frontendMemory": 1.0,
         "backendCpu": 0.75,
         "backendMemory": 1.5,
-        "logRetentionDays": 14,
-        "enableMonitoring": true,
-        "storageAccountSku": "Standard_LRS"
-      },
-      "performance": {
-        "frontendCpu": 1.0,
-        "frontendMemory": 2.0,
-        "backendCpu": 1.5,
-        "backendMemory": 3.0,
-        "logRetentionDays": 30,
-        "enableMonitoring": true,
-        "storageAccountSku": "Standard_GRS"
+        "logRetentionDays": 90,
+        "enableMonitoring": true
       }
     },
     "selectedConfig": "[variables('costConfigs')[parameters('costOptimizationLevel')]]",
     
-    // Conditional resource names (only create if needed)
     "logAnalyticsName": "[if(variables('selectedConfig').enableMonitoring, concat(parameters('appName'), '-logs-', variables('uniqueId')), '')]",
-    "appInsightsName": "[if(variables('selectedConfig').enableMonitoring, concat(parameters('appName'), '-insights-', variables('uniqueId')), '')]",
-    "storageAccountName": "[concat('st', variables('uniqueId'))]"
+    "appInsightsName": "[if(variables('selectedConfig').enableMonitoring, concat(parameters('appName'), '-insights-', variables('uniqueId')), '')]"
   },
   "resources": [
-    {
-      "condition": "[equals(parameters('costOptimizationLevel'), 'performance')]",
-      "type": "Microsoft.Storage/storageAccounts",
-      "apiVersion": "2021-09-01",
-      "name": "[variables('storageAccountName')]",
-      "location": "[parameters('location')]",
-      "sku": {
-        "name": "[variables('selectedConfig').storageAccountSku]"
-      },
-      "kind": "StorageV2",
-      "properties": {
-        "accessTier": "Hot",
-        "allowBlobPublicAccess": false,
-        "supportsHttpsTrafficOnly": true,
-        "minimumTlsVersion": "TLS1_2"
-      }
-    },
     {
       "condition": "[variables('selectedConfig').enableMonitoring]",
       "type": "Microsoft.OperationalInsights/workspaces",
@@ -194,7 +171,7 @@
           {
             "name": "frontend",
             "properties": {
-              "image": "[concat(parameters('dockerRegistryUrl'), '/', parameters('dockerRegistryUsername'), '/bolt-frontend:', parameters('frontendImageTag'))]",
+              "image": "[concat(parameters('dockerRegistryUrl'), '/adianbu/bolt-me-frontend:', parameters('frontendImageTag'))]",
               "ports": [
                 {
                   "port": 80,
@@ -228,7 +205,7 @@
           {
             "name": "backend",
             "properties": {
-              "image": "[concat(parameters('dockerRegistryUrl'), '/', parameters('dockerRegistryUsername'), '/bolt-backend:', parameters('backendImageTag'))]",
+              "image": "[concat(parameters('dockerRegistryUrl'), '/adianbu/bolt-me-backend:', parameters('backendImageTag'))]",
               "ports": [
                 {
                   "port": 3000,
@@ -306,7 +283,7 @@
     },
     "estimatedMonthlyCost": {
       "type": "string",
-      "value": "[if(equals(parameters('costOptimizationLevel'), 'minimal'), '$15-20', if(equals(parameters('costOptimizationLevel'), 'balanced'), '$20-30', '$35-50'))]"
+      "value": "[if(equals(parameters('costOptimizationLevel'), 'minimal'), '$12-18', if(equals(parameters('costOptimizationLevel'), 'balanced'), '$18-25', '$25-35'))]"
     },
     "costOptimizationLevel": {
       "type": "string",

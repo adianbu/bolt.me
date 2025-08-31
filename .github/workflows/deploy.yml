@@ -9,8 +9,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME_FRONTEND: ${{ github.repository }}/frontend
-  IMAGE_NAME_BACKEND: ${{ github.repository }}/backend
+  IMAGE_NAME_FRONTEND: adianbu/bolt-me-frontend
+  IMAGE_NAME_BACKEND: adianbu/bolt-me-backend
 
 jobs:
   build-and-push:

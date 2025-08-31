@@ -30,13 +30,22 @@
       "value": "YOUR_GEMINI_API_KEY_HERE"
     },
     "dockerRegistryUrl": {
-      "value": "ghcr.io"
+      "value": "ghcr.io",
+      "metadata": {
+        "description": "Default: GitHub Container Registry (ghcr.io)"
+      }
     },
     "dockerRegistryUsername": {
-      "value": "YOUR_GITHUB_USERNAME"
+      "value": "adianbu",
+      "metadata": {
+        "description": "GitHub username for container registry access"
+      }
     },
     "dockerRegistryPassword": {
-      "value": "YOUR_GITHUB_TOKEN_HERE"
+      "value": "YOUR_GITHUB_TOKEN_HERE",
+      "metadata": {
+        "description": "Required: GitHub Personal Access Token with packages:read scope"
+      }
     },
     "frontendImageTag": {
       "value": "latest"
