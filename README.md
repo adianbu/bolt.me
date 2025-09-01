@@ -188,7 +188,31 @@ If you encounter 500 Internal Server Error:
 | 💛 **Balanced** | $20-30 | Small business | 1.25 cores, 2.5GB RAM |
 | 💙 **Performance** | $35-50 | Production | 2.5 cores, 5GB RAM |
 
-### Azure Setup Steps:
+### Azure Container Apps Deployment (Recommended) 🔥
+
+**Features:**
+- ✅ Built-in HTTPS with managed certificates
+- ✅ Auto-scaling based on traffic
+- ✅ Cost optimization tiers ($8-30/month)
+- ✅ Zero-downtime deployments
+
+**Quick Deploy:**
+```bash
+# 1. Deploy infrastructure
+./deploy-container-apps.sh
+
+# 2. Configure frontend-backend connectivity
+./configure-frontend-backend.sh
+```
+
+**Cost Tiers:**
+- **Minimal**: $8-12/month (0.25 CPU, 0.5Gi RAM)
+- **Balanced**: $12-18/month (0.5 CPU, 1Gi RAM) - **Recommended**
+- **Performance**: $20-30/month (1.0 CPU, 2Gi RAM)
+
+**⚠️ Schema Fix Applied**: Fixed "invalid req body for env" error by removing circular dependencies in ARM template.
+
+### Azure Container Instances Deployment (Legacy)
 
 1. **Prepare Environment**:
 ```bash

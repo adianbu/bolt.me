@@ -3,6 +3,10 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
+# Accept build arguments
+ARG VITE_BACKEND_URL
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
+
 # Install dependencies for better caching
 COPY package*.json ./
 RUN npm ci && npm cache clean --force
@@ -25,10 +29,8 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # Copy nginx configuration template
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 
-# Create startup script to handle environment variable substitution
-RUN echo '#!/bin/sh' > /docker-entrypoint.d/30-envsubst.sh && \
-    echo 'envsubst < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf' >> /docker-entrypoint.d/30-envsubst.sh && \
-    chmod +x /docker-entrypoint.d/30-envsubst.sh
+# Set default backend service name if not provided
+ENV BACKEND_SERVICE_NAME=backend
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

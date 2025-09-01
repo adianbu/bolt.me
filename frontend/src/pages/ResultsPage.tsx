@@ -11,6 +11,7 @@ import axios from "axios";
 import { parseXml } from "../utils/parseXML";
 import { useWebContainer } from "../hooks/useWebContainer";
 import { WebContainer } from "@webcontainer/api";
+import { API_URL } from "../utils/config";
 
 const ResultsPage: React.FC = () => {
   const [prompt, setPrompt] = useState<string>("");
@@ -253,7 +254,7 @@ const ResultsPage: React.FC = () => {
       if (savedPrompt) {
         setLoading(true);
         //loads template
-        const response = await axios.post("/api/geminiTemplate", {
+        const response = await axios.post(`${API_URL}geminiTemplate`, {
           prompt: savedPrompt.trim(),
         }, {
           headers: {
@@ -271,7 +272,7 @@ const ResultsPage: React.FC = () => {
         );
        
         //loads files for prompt
-        const stepsResponse = await axios.post(`/api/geminichat`, {
+        const stepsResponse = await axios.post(`${API_URL}geminichat`, {
           messages: [...prompts, savedPrompt].map((content) => ({
             role: "user",
             content,
@@ -328,7 +329,7 @@ const ResultsPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const stepsResponse = await axios.post(`/api/geminichat`, {
+      const stepsResponse = await axios.post(`${API_URL}geminichat`, {
         messages: [...llmMessages, newMessage]
       }, {
         headers: {
