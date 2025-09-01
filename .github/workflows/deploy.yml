@@ -11,6 +11,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME_FRONTEND: adianbu/bolt-me-frontend
   IMAGE_NAME_BACKEND: adianbu/bolt-me-backend
+  BACKEND_URL: https://bolt-me-backend-zkedlr.livelyrock-95a93c0b.eastus.azurecontainerapps.io
 
 jobs:
   build-and-push:
@@ -68,6 +69,8 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         platforms: linux/amd64,linux/arm64
+        build-args: |
+          VITE_BACKEND_URL=${{ env.BACKEND_URL }}
 
     - name: Build and push Backend Docker image
       uses: docker/build-push-action@v5
@@ -85,6 +88,7 @@ jobs:
       run: |
         echo "Frontend Image: ${{ steps.meta-frontend.outputs.tags }}"
         echo "Backend Image: ${{ steps.meta-backend.outputs.tags }}"
+        echo "Backend URL configured: ${{ env.BACKEND_URL }}"
 
 
 

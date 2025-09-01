@@ -38,7 +38,7 @@
     "dockerRegistryPassword": {
       "value": "YOUR_GITHUB_TOKEN_HERE",
       "metadata": {
-        "description": "Required: GitHub Personal Access Token with packages:read scope"
+        "description": "Required: GitHub Personal Access Token with packages:read scope. Get from: GitHub → Settings → Developer settings → Personal access tokens → Generate new token (classic) → Select 'read:packages' scope"
       }
     },
     "frontendImageTag": {

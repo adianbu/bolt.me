@@ -102,8 +102,7 @@
         "backendMemory": "0.5Gi",
         "minReplicas": 0,
         "maxReplicas": 2,
-        "logRetentionDays": 30,
-        "enableMonitoring": false
+        "logRetentionDays": 30
       },
       "balanced": {
         "frontendCpu": "0.5",
@@ -112,8 +111,7 @@
         "backendMemory": "1Gi",
         "minReplicas": 1,
         "maxReplicas": 5,
-        "logRetentionDays": 60,
-        "enableMonitoring": true
+        "logRetentionDays": 60
       },
       "performance": {
         "frontendCpu": "1.0",
@@ -122,15 +120,13 @@
         "backendMemory": "2Gi",
         "minReplicas": 2,
         "maxReplicas": 10,
-        "logRetentionDays": 90,
-        "enableMonitoring": true
+        "logRetentionDays": 90
       }
     },
     "selectedConfig": "[variables('costConfigs')[parameters('costOptimizationLevel')]]"
   },
   "resources": [
     {
-      "condition": "[variables('selectedConfig').enableMonitoring]",
       "type": "Microsoft.OperationalInsights/workspaces",
       "apiVersion": "2021-12-01-preview",
       "name": "[variables('logAnalyticsName')]",
@@ -151,7 +147,13 @@
         "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsName'))]"
       ],
       "properties": {
-        "appLogsConfiguration": "[if(variables('selectedConfig').enableMonitoring, createObject('destination', 'log-analytics', 'logAnalyticsConfiguration', createObject('customerId', reference(variables('logAnalyticsName')).customerId, 'sharedKey', listKeys(variables('logAnalyticsName'), '2021-12-01-preview').primarySharedKey)), createObject())]"
+        "appLogsConfiguration": {
+          "destination": "log-analytics",
+          "logAnalyticsConfiguration": {
+            "customerId": "[reference(variables('logAnalyticsName')).customerId]",
+            "sharedKey": "[listKeys(variables('logAnalyticsName'), '2021-12-01-preview').primarySharedKey]"
+          }
+        }
       }
     },
     {
@@ -274,8 +276,7 @@
       "name": "[variables('frontendAppName')]", 
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
-        "[resourceId('Microsoft.App/containerApps', variables('backendAppName'))]"
+        "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]"
       ],
       "properties": {
         "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
@@ -310,8 +311,12 @@
               "image": "[concat(parameters('dockerRegistryUrl'), '/adianbu/bolt-me-frontend:', parameters('frontendImageTag'))]",
               "env": [
                 {
-                  "name": "BACKEND_URL",
-                  "value": "[concat('https://', reference(variables('backendAppName')).configuration.ingress.fqdn)]"
+                  "name": "BACKEND_SERVICE_NAME",
+                  "value": "[variables('backendAppName')]"
+                },
+                {
+                  "name": "CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN",
+                  "value": "[reference(resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))).defaultDomain]"
                 }
               ],
               "resources": {
@@ -376,6 +381,10 @@
     "costOptimizationLevel": {
       "type": "string",
       "value": "[parameters('costOptimizationLevel')]"
+    },
+    "deploymentInstructions": {
+      "type": "string",
+      "value": "Deployment completed. For frontend-backend connectivity, update the frontend container with the backend URL from the backendUrl output."
     }
   }
 }
