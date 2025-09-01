@@ -1,0 +1,57 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appName": {
+      "value": "bolt-me"
+    },
+    "location": {
+      "value": "East US"
+    },
+    "environment": {
+      "value": "prod"
+    },
+    "costOptimizationLevel": {
+      "value": "balanced",
+      "metadata": {
+        "description": "Options: minimal (~$8-12/mo), balanced (~$12-18/mo), performance (~$20-30/mo)"
+      }
+    },
+    "anthropicApiKey": {
+      "value": "YOUR_ANTHROPIC_API_KEY_HERE",
+      "metadata": {
+        "description": "Required: Get from https://console.anthropic.com/"
+      }
+    },
+    "geminiApiKey": {
+      "value": "YOUR_GEMINI_API_KEY_HERE",
+      "metadata": {
+        "description": "Required: Get from https://aistudio.google.com/app/apikey"
+      }
+    },
+    "dockerRegistryUrl": {
+      "value": "ghcr.io",
+      "metadata": {
+        "description": "Default: GitHub Container Registry (ghcr.io)"
+      }
+    },
+    "dockerRegistryPassword": {
+      "value": "YOUR_GITHUB_TOKEN_HERE",
+      "metadata": {
+        "description": "Required: GitHub Personal Access Token with packages:read scope"
+      }
+    },
+    "frontendImageTag": {
+      "value": "latest"
+    },
+    "backendImageTag": {
+      "value": "latest"
+    },
+    "customDomain": {
+      "value": "",
+      "metadata": {
+        "description": "Optional: Your custom domain (e.g., mybolt.com) - leave empty for default *.azurecontainerapps.io domain with automatic HTTPS"
+      }
+    }
+  }
+}

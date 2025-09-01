@@ -1,0 +1,381 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appName": {
+      "type": "string",
+      "defaultValue": "bolt-me",
+      "metadata": {
+        "description": "Name of the application"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources"
+      }
+    },
+    "environment": {
+      "type": "string",
+      "defaultValue": "prod",
+      "allowedValues": [
+        "dev",
+        "staging",
+        "prod"
+      ],
+      "metadata": {
+        "description": "Environment name"
+      }
+    },
+    "costOptimizationLevel": {
+      "type": "string",
+      "defaultValue": "balanced",
+      "allowedValues": [
+        "minimal",
+        "balanced",
+        "performance"
+      ],
+      "metadata": {
+        "description": "Cost optimization level: minimal (~$8-12/mo), balanced (~$12-18/mo), performance (~$20-30/mo)"
+      }
+    },
+    "anthropicApiKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Anthropic API key for AI services"
+      }
+    },
+    "geminiApiKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Google Gemini API key for AI services"
+      }
+    },
+    "dockerRegistryUrl": {
+      "type": "string",
+      "defaultValue": "ghcr.io",
+      "metadata": {
+        "description": "Docker registry URL"
+      }
+    },
+    "dockerRegistryPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "GitHub Personal Access Token with packages:read scope"
+      }
+    },
+    "frontendImageTag": {
+      "type": "string",
+      "defaultValue": "latest",
+      "metadata": {
+        "description": "Frontend container image tag"
+      }
+    },
+    "backendImageTag": {
+      "type": "string",
+      "defaultValue": "latest",
+      "metadata": {
+        "description": "Backend container image tag"
+      }
+    },
+    "customDomain": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Custom domain for HTTPS (optional, leave empty for default *.azurecontainerapps.io domain)"
+      }
+    }
+  },
+  "variables": {
+    "uniqueId": "[substring(uniqueString(resourceGroup().id), 0, 6)]",
+    "environmentName": "[concat(parameters('appName'), '-', parameters('environment'), '-', variables('uniqueId'))]",
+    "frontendAppName": "[concat(parameters('appName'), '-frontend-', variables('uniqueId'))]",
+    "backendAppName": "[concat(parameters('appName'), '-backend-', variables('uniqueId'))]",
+    "logAnalyticsName": "[concat(parameters('appName'), '-logs-', variables('uniqueId'))]",
+    
+    "costConfigs": {
+      "minimal": {
+        "frontendCpu": "0.25",
+        "frontendMemory": "0.5Gi",
+        "backendCpu": "0.25",
+        "backendMemory": "0.5Gi",
+        "minReplicas": 0,
+        "maxReplicas": 2,
+        "logRetentionDays": 30,
+        "enableMonitoring": false
+      },
+      "balanced": {
+        "frontendCpu": "0.5",
+        "frontendMemory": "1Gi",
+        "backendCpu": "0.5", 
+        "backendMemory": "1Gi",
+        "minReplicas": 1,
+        "maxReplicas": 5,
+        "logRetentionDays": 60,
+        "enableMonitoring": true
+      },
+      "performance": {
+        "frontendCpu": "1.0",
+        "frontendMemory": "2Gi",
+        "backendCpu": "1.0",
+        "backendMemory": "2Gi",
+        "minReplicas": 2,
+        "maxReplicas": 10,
+        "logRetentionDays": 90,
+        "enableMonitoring": true
+      }
+    },
+    "selectedConfig": "[variables('costConfigs')[parameters('costOptimizationLevel')]]"
+  },
+  "resources": [
+    {
+      "condition": "[variables('selectedConfig').enableMonitoring]",
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2021-12-01-preview",
+      "name": "[variables('logAnalyticsName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "sku": {
+          "name": "PerGB2018"
+        },
+        "retentionInDays": "[variables('selectedConfig').logRetentionDays]"
+      }
+    },
+    {
+      "type": "Microsoft.App/managedEnvironments",
+      "apiVersion": "2022-10-01",
+      "name": "[variables('environmentName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsName'))]"
+      ],
+      "properties": {
+        "appLogsConfiguration": "[if(variables('selectedConfig').enableMonitoring, createObject('destination', 'log-analytics', 'logAnalyticsConfiguration', createObject('customerId', reference(variables('logAnalyticsName')).customerId, 'sharedKey', listKeys(variables('logAnalyticsName'), '2021-12-01-preview').primarySharedKey)), createObject())]"
+      }
+    },
+    {
+      "type": "Microsoft.App/containerApps",
+      "apiVersion": "2022-10-01", 
+      "name": "[variables('backendAppName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]"
+      ],
+      "properties": {
+        "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
+        "configuration": {
+          "activeRevisionsMode": "Single",
+          "ingress": {
+            "external": true,
+            "targetPort": 3000,
+            "transport": "http",
+            "allowInsecure": false,
+            "corsPolicy": {
+              "allowedOrigins": ["*"],
+              "allowedMethods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+              "allowedHeaders": ["*"]
+            }
+          },
+          "registries": [
+            {
+              "server": "[parameters('dockerRegistryUrl')]",
+              "username": "adianbu",
+              "passwordSecretRef": "registry-password"
+            }
+          ],
+          "secrets": [
+            {
+              "name": "registry-password",
+              "value": "[parameters('dockerRegistryPassword')]"
+            },
+            {
+              "name": "anthropic-api-key",
+              "value": "[parameters('anthropicApiKey')]"
+            },
+            {
+              "name": "gemini-api-key", 
+              "value": "[parameters('geminiApiKey')]"
+            }
+          ]
+        },
+        "template": {
+          "revisionSuffix": "v1",
+          "containers": [
+            {
+              "name": "backend",
+              "image": "[concat(parameters('dockerRegistryUrl'), '/adianbu/bolt-me-backend:', parameters('backendImageTag'))]",
+              "env": [
+                {
+                  "name": "NODE_ENV",
+                  "value": "production"
+                },
+                {
+                  "name": "PORT",
+                  "value": "3000"
+                },
+                {
+                  "name": "ANTHROPIC_API_KEY",
+                  "secretRef": "anthropic-api-key"
+                },
+                {
+                  "name": "GEMINI_API_KEY",
+                  "secretRef": "gemini-api-key"
+                }
+              ],
+              "resources": {
+                "cpu": "[variables('selectedConfig').backendCpu]",
+                "memory": "[variables('selectedConfig').backendMemory]"
+              },
+              "probes": [
+                {
+                  "type": "Liveness",
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 3000,
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 30,
+                  "periodSeconds": 30
+                },
+                {
+                  "type": "Readiness", 
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 3000,
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 10,
+                  "periodSeconds": 10
+                }
+              ]
+            }
+          ],
+          "scale": {
+            "minReplicas": "[variables('selectedConfig').minReplicas]",
+            "maxReplicas": "[variables('selectedConfig').maxReplicas]",
+            "rules": [
+              {
+                "name": "http-scaling",
+                "http": {
+                  "metadata": {
+                    "concurrentRequests": "10"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.App/containerApps",
+      "apiVersion": "2022-10-01",
+      "name": "[variables('frontendAppName')]", 
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
+        "[resourceId('Microsoft.App/containerApps', variables('backendAppName'))]"
+      ],
+      "properties": {
+        "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
+        "configuration": {
+          "activeRevisionsMode": "Single",
+          "ingress": {
+            "external": true,
+            "targetPort": 80,
+            "transport": "http",
+            "allowInsecure": false,
+            "customDomains": "[if(empty(parameters('customDomain')), createArray(), createArray(createObject('name', parameters('customDomain'), 'certificateType', 'ManagedCertificate')))]"
+          },
+          "registries": [
+            {
+              "server": "[parameters('dockerRegistryUrl')]",
+              "username": "adianbu", 
+              "passwordSecretRef": "registry-password"
+            }
+          ],
+          "secrets": [
+            {
+              "name": "registry-password",
+              "value": "[parameters('dockerRegistryPassword')]"
+            }
+          ]
+        },
+        "template": {
+          "revisionSuffix": "v1",
+          "containers": [
+            {
+              "name": "frontend",
+              "image": "[concat(parameters('dockerRegistryUrl'), '/adianbu/bolt-me-frontend:', parameters('frontendImageTag'))]",
+              "env": [
+                {
+                  "name": "BACKEND_URL",
+                  "value": "[concat('https://', reference(variables('backendAppName')).configuration.ingress.fqdn)]"
+                }
+              ],
+              "resources": {
+                "cpu": "[variables('selectedConfig').frontendCpu]",
+                "memory": "[variables('selectedConfig').frontendMemory]"
+              },
+              "probes": [
+                {
+                  "type": "Liveness",
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 80,
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 30,
+                  "periodSeconds": 30
+                },
+                {
+                  "type": "Readiness",
+                  "httpGet": {
+                    "path": "/health", 
+                    "port": 80,
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 10,
+                  "periodSeconds": 10
+                }
+              ]
+            }
+          ],
+          "scale": {
+            "minReplicas": "[variables('selectedConfig').minReplicas]",
+            "maxReplicas": "[variables('selectedConfig').maxReplicas]",
+            "rules": [
+              {
+                "name": "http-scaling",
+                "http": {
+                  "metadata": {
+                    "concurrentRequests": "20"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "frontendUrl": {
+      "type": "string",
+      "value": "[concat('https://', reference(variables('frontendAppName')).configuration.ingress.fqdn)]"
+    },
+    "backendUrl": {
+      "type": "string", 
+      "value": "[concat('https://', reference(variables('backendAppName')).configuration.ingress.fqdn)]"
+    },
+    "estimatedMonthlyCost": {
+      "type": "string",
+      "value": "[if(equals(parameters('costOptimizationLevel'), 'minimal'), '$8-12', if(equals(parameters('costOptimizationLevel'), 'balanced'), '$12-18', '$20-30'))]"
+    },
+    "costOptimizationLevel": {
+      "type": "string",
+      "value": "[parameters('costOptimizationLevel')]"
+    }
+  }
+}
