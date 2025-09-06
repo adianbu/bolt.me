@@ -517,10 +517,10 @@ const ResultsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
+    <div className="min-h-screen bg-gray-900 flex flex-col w-full">
       <Header />
 
-      <main className="flex-grow pt-24 pb-12 px-4 container mx-auto">
+      <main className="flex-grow pt-24 pb-12 px-4 container mx-auto bg-gray-900 min-h-screen w-full">
         {webContainerError && (
           <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-8 text-red-200">
             <p>Failed to initialize web container: {webContainerError}</p>
@@ -551,7 +551,7 @@ const ResultsPage: React.FC = () => {
         </div>
 
         {prompt && (
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-8 shadow-sm">
+          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 mb-8 shadow-sm">
             <h2 className="text-sm font-medium text-gray-400 mb-2">
               Your Prompt
             </h2>
@@ -559,15 +559,15 @@ const ResultsPage: React.FC = () => {
           </div>
         )}
 
-        <div className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-300px)]">
+        <div className="flex flex-col lg:flex-row gap-4 min-h-[calc(100vh-200px)] bg-gray-900 w-full">
           {/* ExecutionSteps - Full width on mobile, 25% on desktop */}
           <div
-            className="w-full lg:w-1/4 overflow-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-900 [&::-webkit-scrollbar-thumb]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-gray-900 hover:[&::-webkit-scrollbar-thumb]:bg-gray-600 min-h-[300px] lg:min-h-0"
+            className="w-full lg:w-1/4 overflow-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-900 [&::-webkit-scrollbar-thumb]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-gray-900 hover:[&::-webkit-scrollbar-thumb]:bg-gray-600 min-h-[350px] lg:min-h-full bg-gray-900"
           >
             <ExecutionSteps steps={steps} currentStepId={currentStepId} />
             <div className="mt-6">
               {loading && (
-                <div className="flex flex-col items-center justify-center space-y-3 bg-gray-800 border border-gray-700 rounded-lg p-4">
+                <div className="flex flex-col items-center justify-center space-y-3 bg-gray-900 border border-gray-700 rounded-lg p-4">
                   <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
                   <div className="flex flex-col items-center text-gray-300 text-sm">
                     <div className="animate-pulse">Creating files...</div>
@@ -578,7 +578,7 @@ const ResultsPage: React.FC = () => {
               )}
             </div>
             {/* Follow-up prompt input */}
-            <div className="mt-6 bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <div className="mt-6 bg-gray-900 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm font-medium text-gray-400 mb-2">Follow-up Prompt</h3>
               <div className="flex flex-col">
                 {loading ? (
@@ -607,15 +607,15 @@ const ResultsPage: React.FC = () => {
           </div>
 
           {/* FileExplorer - Full width on mobile, 25% on desktop */}
-          <div className="w-full lg:w-1/4 overflow-auto min-h-[300px] lg:min-h-0">
+          <div className="w-full lg:w-1/4 overflow-auto min-h-[350px] lg:min-h-full bg-gray-900">
             <FileExplorer
               files={fileItems}
               onFileSelect={(fileItem) => setSelectedFile(fileItem)}
             />
           </div>
 
-          {/* CodePreview - Full width on mobile, 50% on desktop */}
-          <div className="w-full lg:w-1/2 min-h-[300px] lg:min-h-0">
+          {/* CodePreview - Smaller on mobile/tablet, 50% on desktop */}
+          <div className="w-full lg:w-1/2 min-h-[350px] lg:min-h-full bg-gray-900">
             <CodePreview
               file={selectedFile}
               webContainer={{
